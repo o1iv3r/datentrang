@@ -1,4 +1,4 @@
-baseurl = "/"
+baseurl = "https://datentrang.netlify.com/"
 languageCode = "en-us"
 title = "Datentrang"
 theme = "mainroad" # https://themes.gohugo.io/mainroad/
