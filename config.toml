@@ -1,7 +1,7 @@
 baseurl = "https://datentrang.netlify.com/"
 languageCode = "en-us"
 title = "Datentrang"
-theme = "mainroad" # https://themes.gohugo.io/mainroad/
+theme = "Mainroad" # https://themes.gohugo.io/mainroad/
 googleAnalytics = ""
 disqusShortname = ""
 ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
