@@ -15,3 +15,21 @@ tags:
 slug: introducing-clustimpute
 comments: yes
 ---
+
+Abstract
+
+ClustImpute can currently be installed via github only:
+
+```{r}
+devtools::install_github("o1iv3r/ClustImpute")
+```
+
+
+```{r}
+library(ClustImpute)
+```
+
+```{r}
+example("ClustImpute")
+```
+
