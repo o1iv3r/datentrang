@@ -21,7 +21,7 @@ Abstract
 ClustImpute can currently be installed via github only:
 
 ```{r}
-devtools::install_github("o1iv3r/ClustImpute")
+# devtools::install_github("o1iv3r/ClustImpute")
 ```
 
 
