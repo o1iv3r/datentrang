@@ -1,7 +1,8 @@
 library(blogdown)
 # https://themes.gohugo.io/
+
+## hwo to create a new blog post
 # blogdown::new_site(theme = "vimux/mainroad")
-# install_theme("bake/solar-theme-hugo")
 
 # Addins: serve site
 
