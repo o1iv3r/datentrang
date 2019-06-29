@@ -5,7 +5,7 @@ library(blogdown)
 
 # Addins: serve site
 
-## Stage and commit all
+## optional: Stage and commit all
 # git add -A && git commit -m "Your Message"
 
 ## Commit changes
@@ -15,3 +15,5 @@ library(blogdown)
 ## Push to github
 # terminal: git push -u origin master
 # or push button in Rstudio
+
+

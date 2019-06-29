@@ -18,9 +18,6 @@ ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
 [[menu.main]]
     name = "Twitter"
     url = "https://twitter.com/oliverpfaffel"
-[[menu.main]]
-    name = "About"
-    url = "/about/"
 
 [params]
     subtitle = "R, data and staticial methods"
