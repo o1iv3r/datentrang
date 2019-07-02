@@ -31,7 +31,7 @@ required_packages <- Hmisc::Cs(psych,ggplot2,tidyr,Hmisc,tictoc,ClusterR,copula,
 lapply(required_packages, require, character.only = TRUE)
 ```
 
-We are happily introducing a new k-means clustering algorithm that includes a powerful multiple missing data imputation at the computational cost of a few extra random imputations (benchmarks following in a separate article). More precisely, the algorithm draws the missing values based on the current cluster assignment so that correlations are considered on this level (we assume a more granular dependence structure is not relevant if we are "only" interest in k partitions). Subsequently, penalizing weights are imposed on imputed values and succesively decreased (to zero) as the missing data imputation gets better. The hope is that at some point the observed point is near a cluster that provides a suitable neighborhood to draw the missing variable from. The algorithm is computationally efficient since the imputation is only as accurate as the clustering, and will be much faster than any approach that derives the full conditional missing distribution, e.g., as implemented in the (awesome) MICE package, independently of the clustering.
+We are happily introducing a new k-means clustering algorithm that includes a powerful multiple missing data imputation at the computational cost of a few extra random imputations (benchmarks following in a separate article). More precisely, the algorithm draws the missing values iteratively based on the current cluster assignment so that correlations are considered on this level (we assume a more granular dependence structure is not relevant if we are "only" interest in k partitions). Subsequently, penalizing weights are imposed on imputed values and successivelydecreased (to zero) as the missing data imputation gets better. The hope is that at some point the observed point is near a cluster that provides a suitable neighborhood to draw the missing variable from. The algorithm is computationally efficient since the imputation is only as accurate as the clustering, and will be much faster than any approach that derives the full conditional missing distribution, e.g., as implemented in the (awesome) MICE package, independently of the clustering.
 
 ClustImpute can currently be installed via github only:
 
@@ -72,12 +72,12 @@ We create 20% of missings using the custom function **miss_sim()**
 ```{r}
 dat_with_miss <- miss_sim(dat,p=.2,seed_nr=120)
 summary(dat_with_miss)
-mis_ind <- is.na(dat_with_miss) # missing indicator
 ```
 
 The correlation matrix of the missing indicator shows that the missings are correlated - thus we are not in a missing completely at random (MCAR) stetting:
 
 ```{r}
+mis_ind <- is.na(dat_with_miss) # missing indicator
 corrplot(cor(mis_ind),method="number")
 ```
 
@@ -124,7 +124,7 @@ We'll now use ClustImpute and also measure the run-time. In short, the algorithm
 1. It replaces all NAs by random imputation, i.e., for each variable with missings, it draws from the marginal distribution of this variable not taking into account any correlations with other variables
 2. Weights <1 are used to adjust the scale of an observation that was generated in step 1. The weights are calculated by a (linear) weight function that starts near zero and converges to 1 at n_end.
 3. A k-means clustering is performed with a number of c_steps steps starting with a random initialization.
-4. The values from step 2 are replaced by new draws conditionally on the assign cluster from step 3.
+4. The values from step 2 are replaced by new draws conditionally on the assigned cluster from step 3.
 5. Steps 2-4 are repeated nr_iter times in total. The k-means clustering in step 3 uses the previous cluster centroids for initialization.
 6. After the last draws a final k-means clustering is performed.
 
@@ -276,5 +276,5 @@ data2plot <- tidyr::gather(var_by_clust,key = "variable", value = "variance", -d
 ggplot(data2plot,aes(x=nr_clusters,y=variance,color=variable)) + geom_line() + scale_x_continuous(breaks=1:10)
 ```
 
-Now it's time for you to try this algorithm on real problems! Looking forward to feedback either in the comment section or on the github page.
+Now it's time for you to try this algorithm on real problems! Looking forward to feedback  via twitter or on the github page.
 

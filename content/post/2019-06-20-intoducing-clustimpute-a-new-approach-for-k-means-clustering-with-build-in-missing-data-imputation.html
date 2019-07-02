@@ -18,7 +18,7 @@ comments: yes
 
 
 
-<p>We are happily introducing a new k-means clustering algorithm that includes a powerful multiple missing data imputation at the computational cost of a few extra random imputations (benchmarks following in a separate article). More precisely, the algorithm draws the missing values based on the current cluster assignment so that correlations are considered on this level (we assume a more granular dependence structure is not relevant if we are “only” interest in k partitions). Subsequently, penalizing weights are imposed on imputed values and succesively decreased (to zero) as the missing data imputation gets better. The hope is that at some point the observed point is near a cluster that provides a suitable neighborhood to draw the missing variable from. The algorithm is computationally efficient since the imputation is only as accurate as the clustering, and will be much faster than any approach that derives the full conditional missing distribution, e.g., as implemented in the (awesome) MICE package, independently of the clustering.</p>
+<p>We are happily introducing a new k-means clustering algorithm that includes a powerful multiple missing data imputation at the computational cost of a few extra random imputations (benchmarks following in a separate article). More precisely, the algorithm draws the missing values iteratively based on the current cluster assignment so that correlations are considered on this level (we assume a more granular dependence structure is not relevant if we are “only” interest in k partitions). Subsequently, penalizing weights are imposed on imputed values and successivelydecreased (to zero) as the missing data imputation gets better. The hope is that at some point the observed point is near a cluster that provides a suitable neighborhood to draw the missing variable from. The algorithm is computationally efficient since the imputation is only as accurate as the clustering, and will be much faster than any approach that derives the full conditional missing distribution, e.g., as implemented in the (awesome) MICE package, independently of the clustering.</p>
 <p>ClustImpute can currently be installed via github only:</p>
 <pre class="r"><code># devtools::install_github(&quot;o1iv3r/ClustImpute&quot;)
 library(ClustImpute)</code></pre>
@@ -73,10 +73,10 @@ summary(dat_with_miss)
 #&gt;  Mean   : 0.0022   Mean   :-0.0019  
 #&gt;  3rd Qu.: 0.9473   3rd Qu.: 0.9689  
 #&gt;  Max.   : 2.8954   Max.   : 2.2654  
-#&gt;  NA&#39;s   :1580      NA&#39;s   :1516
-mis_ind &lt;- is.na(dat_with_miss) # missing indicator</code></pre>
+#&gt;  NA&#39;s   :1580      NA&#39;s   :1516</code></pre>
 <p>The correlation matrix of the missing indicator shows that the missings are correlated - thus we are not in a missing completely at random (MCAR) stetting:</p>
-<pre class="r"><code>corrplot(cor(mis_ind),method=&quot;number&quot;)</code></pre>
+<pre class="r"><code>mis_ind &lt;- is.na(dat_with_miss) # missing indicator
+corrplot(cor(mis_ind),method=&quot;number&quot;)</code></pre>
 <p><img src="/post/2019-06-20-intoducing-clustimpute-a-new-approach-for-k-means-clustering-with-build-in-missing-data-imputation_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
 </div>
 <div id="typical-approach-median-or-random-imputation" class="section level1">
@@ -105,7 +105,7 @@ ggplot(dat_random_imp) + geom_point(aes(x=x,y=y,color=imp))
 <pre class="r"><code>tic(&quot;Clustering based on random imputation&quot;)
 cl_compare &lt;- KMeans_arma(data=dat_random_imp,clusters=3,n_iter=100,seed=751)
 toc()
-#&gt; Clustering based on random imputation: 0.06 sec elapsed
+#&gt; Clustering based on random imputation: 0.01 sec elapsed
 dat_random_imp$pred &lt;- predict_KMeans(dat_random_imp,cl_compare)
 ggplot(dat_random_imp) + geom_point(aes(x=x,y=y,color=factor(pred)))
 #&gt; Don&#39;t know how to automatically pick scale for object of type impute. Defaulting to continuous.
@@ -119,7 +119,7 @@ ggplot(dat_random_imp) + geom_point(aes(x=x,y=y,color=factor(pred)))
 <li>It replaces all NAs by random imputation, i.e., for each variable with missings, it draws from the marginal distribution of this variable not taking into account any correlations with other variables</li>
 <li>Weights &lt;1 are used to adjust the scale of an observation that was generated in step 1. The weights are calculated by a (linear) weight function that starts near zero and converges to 1 at n_end.</li>
 <li>A k-means clustering is performed with a number of c_steps steps starting with a random initialization.</li>
-<li>The values from step 2 are replaced by new draws conditionally on the assign cluster from step 3.</li>
+<li>The values from step 2 are replaced by new draws conditionally on the assigned cluster from step 3.</li>
 <li>Steps 2-4 are repeated nr_iter times in total. The k-means clustering in step 3 uses the previous cluster centroids for initialization.</li>
 <li>After the last draws a final k-means clustering is performed.</li>
 </ol>
@@ -131,7 +131,7 @@ c_steps &lt;- 50 # numer of cluster steps per iteration
 tic(&quot;Run ClustImpute&quot;)
 res &lt;- ClustImpute(dat_with_miss,nr_cluster=nr_cluster, nr_iter=nr_iter, c_steps=c_steps, n_end=n_end) 
 toc()
-#&gt; Run ClustImpute: 0.64 sec elapsed</code></pre>
+#&gt; Run ClustImpute: 0.39 sec elapsed</code></pre>
 <p>ClustImpute provides several results:</p>
 <pre class="r"><code>str(res)
 #&gt; List of 5
@@ -156,8 +156,6 @@ toc()
 #&gt;  - attr(*, &quot;nr_iter&quot;)= num 10
 #&gt;  - attr(*, &quot;c_steps&quot;)= num 50
 #&gt;  - attr(*, &quot;wf&quot;)=function (n, n_end = 10)  
-#&gt;   ..- attr(*, &quot;srcref&quot;)= &#39;srcref&#39; int [1:8] 153 15 156 1 15 1 155 158
-#&gt;   .. ..- attr(*, &quot;srcfile&quot;)=Classes &#39;srcfilealias&#39;, &#39;srcfile&#39; &lt;environment: 0x0000000026b6ea78&gt; 
 #&gt;  - attr(*, &quot;n_end&quot;)= num 10
 #&gt;  - attr(*, &quot;seed_nr&quot;)= num 150519</code></pre>
 <p>We’ll first look at the complete data and clustering results. Quite obviously, it gives better results then median / random imputation.</p>
@@ -278,6 +276,6 @@ var_by_clust$nr_clusters &lt;- 1:10</code></pre>
 <pre class="r"><code>data2plot &lt;- tidyr::gather(var_by_clust,key = &quot;variable&quot;, value = &quot;variance&quot;, -dplyr::one_of(&quot;nr_clusters&quot;))
 ggplot(data2plot,aes(x=nr_clusters,y=variance,color=variable)) + geom_line() + scale_x_continuous(breaks=1:10)</code></pre>
 <p><img src="/post/2019-06-20-intoducing-clustimpute-a-new-approach-for-k-means-clustering-with-build-in-missing-data-imputation_files/figure-html/unnamed-chunk-24-1.png" width="672" /></p>
-<p>Now it’s time for you to try this algorithm on real problems! Looking forward to feedback either in the comment section or on the github page.</p>
+<p>Now it’s time for you to try this algorithm on real problems! Looking forward to feedback via twitter or on the github page.</p>
 </div>
 </div>

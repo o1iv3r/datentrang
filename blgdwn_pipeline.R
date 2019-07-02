@@ -1,13 +1,13 @@
 library(blogdown)
+
+## change the theme
+# blogdown::new_site(theme = "vimux/mainroad")
 # https://themes.gohugo.io/
 
-## hwo to create a new blog post
-# blogdown::new_site(theme = "vimux/mainroad")
+## how to create a new blog post
+# use add-in
 
 # Addins: serve site
-
-## optional: Stage and commit all
-# git add -A && git commit -m "Your Message"
 
 ## Commit changes
 # terminal: git commit -m "Commit message"
