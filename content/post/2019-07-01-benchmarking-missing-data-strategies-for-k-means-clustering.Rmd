@@ -35,7 +35,7 @@ The goal is to compare a few algorithms for missing imputation when used before 
 
 First we'll load all relevant packages
 
-```{r echo=FALSE}
+```{r, echo=FALSE, warning=FALSE,message=FALSE}
 library(ClustImpute)
 library(ClusterR)
 library(mice)
@@ -160,7 +160,7 @@ for (n in N) {
 
 Below are the results for the four data sets (only differing in size). Clearly a reandom imputation is fastest, but  the AMELIA package is only slightly slower. ClustImpute is 3rd and considerably faster than MICE and missRanger.
 
-```{r warning=FALSE}
+```{r, warning=FALSE, message=FALSE}
 plot_grid(autoplot(results$benchmark[[1]]),autoplot(results$benchmark[[2]]),autoplot(results$benchmark[[3]]),autoplot(results$benchmark[[4]]),
           autoplot(results$benchmark[[5]]),
                ncol=2,labels=sprintf("n = %s",N),label_size = 12,vjust=1)
@@ -168,7 +168,7 @@ plot_grid(autoplot(results$benchmark[[1]]),autoplot(results$benchmark[[2]]),auto
 
 Let's focus on the scalabiltiy here: Amelia and ClustImpute scale much better than MICE and missRanger. ClustImpute scales like a simple random imputation and thus better than AMELIA.
 
-```{r}
+```{r, warning=FALSE, message=FALSE}
 data2plot <- data.frame(median=unlist(results$benchmark_median))
 data2plot$method <- rep(Hmisc::Cs(ClustImpute,RandomImp,MissRanger,MICE,AMELIA),length(N))
 data2plot$n <- rep(N,each=5)
@@ -188,7 +188,6 @@ ToDo write text when results are final
  
 
 ```{r}
-results$randIndex
 randtbl <- data.frame(matrix(unlist(results$randIndex),nrow=length(results$randIndex), byrow=T))
 colnames(randtbl) <- names(results$randIndex[[1]])
 randtbl$N <- N
