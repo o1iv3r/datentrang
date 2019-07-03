@@ -121,11 +121,11 @@ for (n in N) {
   results$benchmark_median[[count]] &lt;- mbm_median
 }</code></pre>
 <p>Below are the results for the four data sets (only differing in size). Clearly a reandom imputation is fastest, but the AMELIA package is only slightly slower. ClustImpute is 3rd and considerably faster than MICE and missRanger.</p>
-<pre class="r"><code>plot_grid(autoplot(results$benchmark[[1]]),autoplot(results$benchmark[[2]]),autoplot(results$benchmark[[3]]),autoplot(results$benchmark[[4]]),
+<pre class="r"><code>plot_grid(autoplot(results$benchmark[[2]]),autoplot(results$benchmark[[3]]),autoplot(results$benchmark[[4]]),
           autoplot(results$benchmark[[5]]),
                ncol=2,labels=sprintf(&quot;n = %s&quot;,N),label_size = 12,vjust=1)</code></pre>
 <p><img src="/post/2019-07-01-benchmarking-missing-data-strategies-for-k-means-clustering_files/figure-html/unnamed-chunk-6-1.png" width="960" /></p>
-<p>Let’s focus on the scalabiltiy here: Amelia and ClustImpute scale much better than MICE and missRanger. ClustImpute scales like a simple random imputation and thus better than AMELIA.</p>
+<p>Let’s focus on the scalabiltiy here: Amelia and ClustImpute scale much better than MICE and missRanger. ClustImpute scales like a simple random imputation and similarly as AMELIA.</p>
 <pre class="r"><code>data2plot &lt;- data.frame(median=unlist(results$benchmark_median))
 data2plot$method &lt;- rep(Hmisc::Cs(ClustImpute,RandomImp,MissRanger,MICE,AMELIA),length(N))
 data2plot$n &lt;- rep(N,each=5)
@@ -138,8 +138,7 @@ ps2 &lt;- ggplot(data2plot,aes(x=n,y=median,color=method)) + geom_point() + them
   scale_y_log10() + xlab(&quot;Numer of observations n&quot;) + ylab(&quot;Median running time in seconds&quot;) + theme(legend.position=&quot;none&quot;)
 plot_grid(ps1 + theme(legend.position=&quot;none&quot;),ps2,legend,nrow=1,rel_widths = c(3,3,1))</code></pre>
 <p><img src="/post/2019-07-01-benchmarking-missing-data-strategies-for-k-means-clustering_files/figure-html/unnamed-chunk-7-1.png" width="960" /></p>
-<p>Of course, these plots only consider the running time. Below is a table of the rand indices comparing the resulting clusters with the true clusters.</p>
-<p>ToDo write text when results are final</p>
+<p>Of course, above plots only consider the running time. Below is a table of the rand indices comparing the resulting clusters with the true clusters. ClustImpute provides the highest numbers, although the other imputation methods (except random imputation) could provide better results if they are tuned.</p>
 <pre class="r"><code>randtbl &lt;- data.frame(matrix(unlist(results$randIndex),nrow=length(results$randIndex), byrow=T))
 colnames(randtbl) &lt;- names(results$randIndex[[1]])
 randtbl$N &lt;- N

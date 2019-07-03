@@ -161,12 +161,12 @@ for (n in N) {
 Below are the results for the four data sets (only differing in size). Clearly a reandom imputation is fastest, but  the AMELIA package is only slightly slower. ClustImpute is 3rd and considerably faster than MICE and missRanger.
 
 ```{r, warning=FALSE, message=FALSE}
-plot_grid(autoplot(results$benchmark[[1]]),autoplot(results$benchmark[[2]]),autoplot(results$benchmark[[3]]),autoplot(results$benchmark[[4]]),
+plot_grid(autoplot(results$benchmark[[2]]),autoplot(results$benchmark[[3]]),autoplot(results$benchmark[[4]]),
           autoplot(results$benchmark[[5]]),
                ncol=2,labels=sprintf("n = %s",N),label_size = 12,vjust=1)
 ```
 
-Let's focus on the scalabiltiy here: Amelia and ClustImpute scale much better than MICE and missRanger. ClustImpute scales like a simple random imputation and thus better than AMELIA.
+Let's focus on the scalabiltiy here: Amelia and ClustImpute scale much better than MICE and missRanger. ClustImpute scales like a simple random imputation and similarly as AMELIA.
 
 ```{r, warning=FALSE, message=FALSE}
 data2plot <- data.frame(median=unlist(results$benchmark_median))
@@ -182,10 +182,9 @@ ps2 <- ggplot(data2plot,aes(x=n,y=median,color=method)) + geom_point() + theme_c
 plot_grid(ps1 + theme(legend.position="none"),ps2,legend,nrow=1,rel_widths = c(3,3,1))
 ```
 
-Of course, these plots only consider the running time. Below is a table of the rand indices comparing the resulting clusters with the true clusters.
+Of course, above plots only consider the running time. Below is a table of the rand indices comparing the resulting clusters with the true clusters. ClustImpute provides the highest numbers, although the other imputation methods (except random imputation) could provide better results if they are tuned.
 
-ToDo write text when results are final
- 
+
 
 ```{r}
 randtbl <- data.frame(matrix(unlist(results$randIndex),nrow=length(results$randIndex), byrow=T))
