@@ -1,0 +1,157 @@
+---
+title: "Measuring feature importance in k-means clustering and variants thereof"
+author: "Oliver Pfaffel"
+date: '2019-07-10'
+description: ''
+slug: measuring-feature-importance-in-k-means-clustering-and-variants-thereof
+tags:
+- clustering
+- k-means
+- feature importance
+- model agnostic
+thumbnail: ''
+categories:
+- R
+- unsupervised machine learning
+- statistical analysis
+---
+
+
+
+<p>We present a novel approach for measuring feature importance in k-means clustering, or variants thereof, to increase the interpretability of clustering results. In supervised machine learning, feature importance is a widely used tool to ensure interpretability of complex models. We adapt this idea to unsupervised learning via partitional clustering. Our approach is model agnostic in that it only requires a function that computes the cluster assignment for new data points.</p>
+<p>Based on a simulation study below we show that the algorithm finds the variables which drive the cluster assignment and scores them according to their relevance. As a further application, this provides a new approach for hyperparameter tuning for data sets of mixed type when the metric is a linear combination of a numerical and a categorical distance measure - as in Gower’s distance, for example.</p>
+<p>In combination with stability analyses, feature importance provides a means for feature selection, i.e. the identification of a lower dimensional subspace which offers a reasonable separation. Our package works with some popular clustering packages such as flexclust, clustMixType, base R’s kmeans function and the newly developed ClustImpute package.</p>
+<div id="installation" class="section level2">
+<h2>Installation</h2>
+<p>You can install the package as follows:</p>
+<pre class="r"><code>devtools::install_github(&quot;o1iv3r/FeatureImpCluster&quot;)</code></pre>
+</div>
+<div id="useage-with-flexclust" class="section level2">
+<h2>Useage with flexclust</h2>
+<p>We’ll create some random data to illustrate the usage of FeatureImpCluster. It provides 4 clusters in a 2 dimensional subspace of a 6 dimensional space</p>
+<pre class="r"><code>library(FeatureImpCluster)
+#&gt; Lade nötiges Paket: data.table
+
+set.seed(7)
+dat &lt;- create_random_data(n=4000,nr_other_vars = 4)
+summary(dat$data)
+#&gt;        V1                  V2                  V3           
+#&gt;  Min.   :-3.531648   Min.   :-3.578032   Min.   :-3.924400  
+#&gt;  1st Qu.:-0.670694   1st Qu.:-0.676281   1st Qu.:-0.662992  
+#&gt;  Median :-0.001917   Median :-0.001944   Median :-0.002742  
+#&gt;  Mean   : 0.000000   Mean   : 0.000000   Mean   : 0.000000  
+#&gt;  3rd Qu.: 0.654912   3rd Qu.: 0.658228   3rd Qu.: 0.678405  
+#&gt;  Max.   : 3.501554   Max.   : 3.717284   Max.   : 3.065434  
+#&gt;        V4                 x                   y           
+#&gt;  Min.   :-3.91009   Min.   :-2.255326   Min.   :-2.04657  
+#&gt;  1st Qu.:-0.67427   1st Qu.:-0.934193   1st Qu.:-0.92633  
+#&gt;  Median : 0.01396   Median :-0.004383   Median : 0.04418  
+#&gt;  Mean   : 0.00000   Mean   : 0.000000   Mean   : 0.00000  
+#&gt;  3rd Qu.: 0.67657   3rd Qu.: 0.927500   3rd Qu.: 0.92785  
+#&gt;  Max.   : 3.58167   Max.   : 2.095888   Max.   : 2.18437</code></pre>
+<pre class="r"><code>library(ggplot2)
+true_clusters &lt;- factor(dat$true_clusters)
+ggplot(dat$data,aes(x=x,y=y,color=true_clusters)) + geom_point()</code></pre>
+<p><img src="/post/2019-07-10-measuring-feature-importance-in-k-means-clustering-and-variants-thereof_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<p>If our clustering works well, x and y should determine the partition while the other variables V1,..,V4 should be irrelevant. Feature importance is a novel way to determine whether this is the case. We’ll use the flexclust package for this example. Its main function FeatureImpCluster computes the permutation missclassification rate for each variable of the data. The mean misclassification rate over all iterations is interpreted as variable importance. The permutation missclassification rate of a feature (column) is the number of wrong cluster assignments divided by the number of observations (rows) given a permutation of the feature.</p>
+<pre class="r"><code>library(FeatureImpCluster)
+library(flexclust)
+#&gt; Lade nötiges Paket: grid
+#&gt; Lade nötiges Paket: lattice
+#&gt; Lade nötiges Paket: modeltools
+#&gt; Lade nötiges Paket: stats4
+set.seed(10)
+res &lt;- kcca(dat$data,k=4)
+FeatureImp_res &lt;- FeatureImpCluster(res,as.data.table(dat$data))
+plot(FeatureImp_res)</code></pre>
+<p><img src="/post/2019-07-10-measuring-feature-importance-in-k-means-clustering-and-variants-thereof_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<p>Indeed, y and x are most relevant. But also V2 has some impact on the cluster assignment. By looking at the cluster centers we see that, in particular, cluster 2 and 3 have a different center in the V2 dimension than the other clusters.</p>
+<pre class="r"><code>barplot(res)</code></pre>
+<p><img src="/post/2019-07-10-measuring-feature-importance-in-k-means-clustering-and-variants-thereof_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<pre class="r"><code># bwplot(res,dat$data), image(res,which=5:6) # alternative diagnostic plots of flexclust</code></pre>
+<p>If we had a lot more than 6 variables (and possibly more clusters), then the chart above might be hard to interpret. The feature importance plot instead provides an aggregate statistics per feature and is, as such, always easy to interpret, in particular since only the top x (say, 10 or 30) features can be considered to get a first impression.</p>
+</div>
+<div id="feature-selection" class="section level2">
+<h2>Feature selection</h2>
+<p>We know that the clustering is impacted by the random initialization. Thus it is usually recommended to run the clustering alogrithm several times with different seeds. As a by-product, the feature importance will provide us a feature selection mechanism: instead of iterating over permutation, we can iterate over the different cluster runs (or both). This way there is a good chance that any spurious importance is identified as an outlier.</p>
+<p>For our example we repeat the clustering + feature importance calculation 5 times:</p>
+<pre class="r"><code>set.seed(12)
+nr_seeds &lt;- 5
+seeds_vec &lt;- sample(1:1000,nr_seeds)
+
+savedImp &lt;- data.frame(matrix(0,nr_seeds,dim(dat$data)[2]))
+count &lt;- 1
+for (s in seeds_vec) {
+  set.seed(s)
+  res &lt;- kcca(dat$data,k=4)
+  FeatureImp_res &lt;- FeatureImpCluster(res,as.data.table(dat$data),sub = 1,biter = 1)
+  savedImp[count,] &lt;- FeatureImp_res$featureImp[sort(names(FeatureImp_res$featureImp))]
+  count &lt;- count + 1
+}
+names(savedImp) &lt;- sort(names(FeatureImp_res$featureImp))</code></pre>
+<p>Now it becomes quite obvious that x and y are the only relevant features, and we could do our clustering only based on these features. This is importantant in practice since cluster centroids with a lower number of features are easier to interpret, and we can save time / money collecting and pre-processing unnecessary features.</p>
+<pre class="r"><code>boxplot(savedImp)</code></pre>
+<p><img src="/post/2019-07-10-measuring-feature-importance-in-k-means-clustering-and-variants-thereof_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+</div>
+<div id="data-sets-of-mixed-type" class="section level2">
+<h2>Data sets of mixed type</h2>
+<p>Another application arises for data sets with numerical and categorical features. Since one cannot simply calculate an Euclidean distance for categorical variables, one often uses an L0-norm (1 for equality, 0 else) for the latter and combines both metrices linearly with an appropriate weight (often this choice is referred to as Gower’s distance in the literature). In the clustMixType package the parameter <strong>lambda</strong> defines the trade off between Euclidean distance of numeric variables and simple matching coefficient between categorical variables. Feature Importance can be used as an additional guide to tune this parameter.</p>
+<p>First we add categorical variables to our data set</p>
+<pre class="r"><code>ds &lt;- as.data.table(dat$data)
+
+n &lt;- dim(ds)[1]
+p &lt;- dim(ds)[2]
+
+set.seed(123)
+ds[,cat1:=factor(rbinom(n,size=1,prob=0.3),labels = c(&quot;yes&quot;,&quot;no&quot;))] # irrelevant factor
+ds[,cat2:=factor(c(rep(&quot;yes&quot;,n/2),rep(&quot;no&quot;,n/2)))] # relevant factor</code></pre>
+<p>Obviously x and cat2 are strongly correlated.</p>
+<pre class="r"><code>cor(ds$x,as.numeric(ds$cat2),method=&quot;spearman&quot;)
+#&gt; [1] 0.8655712</code></pre>
+<p>First we’ll apply the clustering with an automatic estimation of <strong>lambda</strong></p>
+<pre class="r"><code>library(clustMixType)
+res &lt;- kproto(x=ds,k=4)
+#&gt; # NAs in variables:
+#&gt;   V1   V2   V3   V4    x    y cat1 cat2 
+#&gt;    0    0    0    0    0    0    0    0 
+#&gt; 0 observation(s) with NAs.
+#&gt; 
+#&gt; Estimated lambda: 2.17156
+res$lambda
+#&gt; [1] 2.17156</code></pre>
+<p>With color=“type” we can draw the attention to the importance by data type. While cat2 correctly has some importance, the one of cat1 is almost zero.</p>
+<pre class="r"><code>FeatureImp_res &lt;- FeatureImpCluster(res,ds)
+plot(FeatureImp_res,ds,color=&quot;type&quot;)</code></pre>
+<p><img src="/post/2019-07-10-measuring-feature-importance-in-k-means-clustering-and-variants-thereof_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+<p>All in all the numeric variables are more important for the partitioning. If, for some reason, we wanted partitions that emphasize differences between the cateogrical features, we’d have to increase <strong>lambda</strong>. The feature importance directly shows us the effect of this action: the two categorical features now have an equally high importance only somewhat smaller than x. As above, repeated partitioning could be used to compute a more reasonable importance for the data set and not only an importance for a specific partition.</p>
+<pre class="r"><code>res2 &lt;- kproto(x=ds,k=4,lambda=3)
+#&gt; # NAs in variables:
+#&gt;   V1   V2   V3   V4    x    y cat1 cat2 
+#&gt;    0    0    0    0    0    0    0    0 
+#&gt; 0 observation(s) with NAs.
+plot(FeatureImpCluster(res2,ds),ds,color=&quot;type&quot;)</code></pre>
+<p><img src="/post/2019-07-10-measuring-feature-importance-in-k-means-clustering-and-variants-thereof_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+<p>Of course, further criteria should be used to determine an “optimal” <strong>lamda</strong> for the use case at hand - but certainly featuer importance provides helpful guidance for data of mixed types.</p>
+</div>
+<div id="other-methods-kmeans-pam-and-clustimpute" class="section level2">
+<h2>Other methods: kmeans(), pam() and ClustImpute()</h2>
+<p>FeatureImpCluster can be easily used with other packages. For example, stats::kmeans or cluster::pam can be used via flexclust:</p>
+<pre class="r"><code>cl_kcca &lt;- flexclust::as.kcca(cl, dat$data) # cl is a kcca or pam object
+FeatureImpCluster(cl_kcca,as.data.table(dat$data))</code></pre>
+<p>ClustImpute, a package that efficiently imputes missing values while performing a k-means clustering can be used directly:</p>
+<pre class="r"><code>library(ClustImpute)
+res_clustimpute &lt;- ClustImpute(as.data.frame(dat$data),4)
+
+FeatureImpCluster(res_clustimpute,as.data.table(dat$data))</code></pre>
+<p>For other methods, a custom prediction function can be provided (cf. documentation for details)</p>
+<pre class="r"><code>FeatureImpCluster(clusterObj, as.data.table(dat$data), predFUN = custom_prediction_function_for_clusterObj)</code></pre>
+</div>
+<div id="further-options" class="section level2">
+<h2>Further options</h2>
+<p>There are further options not being explained in the examples above:</p>
+<ul>
+<li>For initialization, the prediction methodhas to be computed on the entire data set. This can be of high computational cost for large data sets. Alterntively one can provide the current partitioning via basePred.</li>
+<li>To further spead up a computation on large data sets, the permutation importance can be computed on random subsets of the data. This can be controlled via the <strong>sub</strong> parameter</li>
+<li>The number of iterations (default is 10) can be set via <strong>biter</strong></li>
+</ul>
+</div>

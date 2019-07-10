@@ -4,7 +4,10 @@ library(blogdown)
 # blogdown::new_site(theme = "vimux/mainroad")
 # https://themes.gohugo.io/
 
-## how to create a new blog post
+## how to create a new blog post: add-in new post
+
+## Create post
+# run all chunks
 # use add-in: serve site
 
 ## Commit changes
