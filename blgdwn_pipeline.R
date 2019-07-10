@@ -5,9 +5,7 @@ library(blogdown)
 # https://themes.gohugo.io/
 
 ## how to create a new blog post
-# use add-in
-
-# Addins: serve site
+# use add-in: serve site
 
 ## Commit changes
 # terminal: git commit -m "Commit message"
