@@ -57,7 +57,7 @@ thumbnail: ''
 <h2>Documentation</h2>
 <p>We’ll add a news and readme file.</p>
 <pre class="r"><code>use_news_md()
-use_readme_md() # use_readme_rmd() IF you want to run R code in</code></pre>
+use_readme_md() # use_readme_rmd() IF you want to run R code in your readme</code></pre>
 <p>We change the readme file as follows.</p>
 <pre class="r"><code># CIexamplePkg
 
@@ -69,6 +69,8 @@ The goal of CIexamplePkg is to provide a simple example on how to set up a packa
 <pre class="r"><code>use_version()</code></pre>
 <p>You can also add a vignette, but we’ll not do this here.</p>
 <pre class="r"><code>use_vignette(&quot;name_of_vignette&quot;)</code></pre>
+<p>Also very nice is the option to add a spell-checker (again omited for this package)</p>
+<pre class="r"><code>use_spell_check() # requires spelling package</code></pre>
 <p>Every R function should have a documentation. We’ll change the code of our function to</p>
 <pre class="r"><code>#&#39; Sum up two variables
 #&#39;
@@ -104,7 +106,7 @@ After “Install and Restart” we build the documentation via</p>
 <h2>Checking the package</h2>
 <p>Now we should check the package (there also is a button for this in RStudio)</p>
 <pre class="r"><code>devtools::check(document = FALSE)</code></pre>
-<p>To remove the note about non-standard files on top level, we simply ignore those file when building R</p>
+<p>To remove the note about non-standard files on top level, we simply ignore those files when building R</p>
 <pre class="r"><code>use_build_ignore(&quot;name of file to ignore.filetype&quot;)</code></pre>
 </div>
 <div id="tests" class="section level2">
@@ -137,18 +139,20 @@ usethis::use_git_config(user.name = &quot;Oliver Pfaffel&quot;, user.email = &qu
 <pre class="r"><code>usethis::use_travis()</code></pre>
 <p>Turn on travis for your repo at <a href="https://travis-ci.org/profile/o1iv3r" class="uri">https://travis-ci.org/profile/o1iv3r</a> as usethis says (your link will include your repo name).</p>
 <p>Add your github PAT to the Travis environment variables via options -&gt; settings -&gt; Environment variables</p>
-<p><em>NAME: GITHUB_PAT
-</em>VALUE: <token></p>
+<ul>
+<li>NAME: GITHUB_PAT</li>
+<li>VALUE: token</li>
+</ul>
 <p>Travis will now run each time we push to github. Try this out! Note that this might take some time. After a successfull build you might notice the nice badge on your github page.</p>
 </div>
 <div id="advanced-travis-options" class="section level2">
 <h2>Advanced Travis options</h2>
 <p>Building wrt different R versions:</p>
 <p>Add</p>
-<p>r:
-- oldrel
-- release
-- devel</p>
+<pre class="r"><code>r:
+  - oldrel
+  - release
+  - devel</code></pre>
 <p>to your .travis.yml</p>
 <p>This means we can test against three versions of R with no effort</p>
 <p>Build only for certain branches via</p>
@@ -174,8 +178,10 @@ after_success:
   - Rscript -e &#39;covr::codecov()&#39;</code></pre>
 <p>to your travis.yml</p>
 <p>Then got to <a href="https://codecov.io/"></a> and add your repo. You will get a token that you have to add ad an Travis env variable (similar to your github PAT)</p>
-<p><em>NAME: CODECOV_TOKEN
-</em>VALUE: <token></p>
+<ul>
+<li>NAME: CODECOV_TOKEN</li>
+<li>VALUE: token</li>
+</ul>
 <p>Now commit and push your changes to github and enjoy your new coverage badge.</p>
 <p>By the way, the covr package has a nice Addin that graphically shows you test coverage:</p>
 <pre class="r"><code>library(covr)
