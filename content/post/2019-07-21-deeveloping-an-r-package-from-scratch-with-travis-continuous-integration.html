@@ -1,0 +1,184 @@
+---
+title: Developing an R package from scratch with Travis continuous integration
+author: Oliver Pfaffel
+date: '2019-07-21'
+slug: deeveloping-an-r-package-from-scratch-with-travis-continuous-integration
+categories:
+  - R
+  - package development
+  - tutorial
+tags:
+  - Travis CI
+  - continous integration
+  - test coverage
+  - usethis
+description: ''
+thumbnail: ''
+---
+
+
+
+<p>This short tutorial provdes a quick guide on how to develop an R package from scratch and how use Travis CI for automatic builds on various R versions and automatic test coverage calculation. The resulting package can be found here: <a href="https://github.com/o1iv3r/CIexamplePkg">CIexamplePkg</a></p>
+<p>A very nice general introduction can be found here:
+<a href="https://devguide.ropensci.org/">rOpenSci Packages: Development, Maintenance, and Peer Review</a></p>
+<p>Some material is taken from the awesome UseR 2019 tutorial from Colin Gillespie: <a href="https://www.jumpingrivers.com/t/2019-user-git/#1">https://www.jumpingrivers.com/t/2019-user-git/#1</a></p>
+<div id="r-package-basics" class="section level1">
+<h1>R package basics</h1>
+<p>First, create a new package, e.g. using the RStudio GUI. The <em>usethis</em> package facilitates all upcoming steps immensely:</p>
+<pre class="r"><code>library(usethis)</code></pre>
+<p>Feel free to delete the hello world example (R and Rd file in R and man folder). We’ll add new functionality via</p>
+<pre class="r"><code>use_r(&quot;add.R&quot;)</code></pre>
+<p>The code we add is as follows:</p>
+<pre class="r"><code>add &lt;- function(a,b) {
+  return(a+b)
+}</code></pre>
+<p>To see the new function in action run “Install and Restart” from the “Build” tab:</p>
+<pre class="r"><code>add(7,2)</code></pre>
+<p>We’ll now add more functionality. Note that one should always refer to the package of a function using “::”. If you don’t do this, the check later gives an error. Thus we refer to all ggplot functions with <code>ggplot2::fun()</code>.</p>
+<pre class="r"><code>add &lt;- function(a,b,plot=FALSE) {
+  val &lt;- a+b
+  if (plot==TRUE) {
+    df &lt;- data.frame(x=c(a,b,val))
+    p &lt;- ggplot2::ggplot(df) + ggplot2::geom_col(ggplot2::aes(x=x,y=x))
+    print(p)
+  }
+  return(val)
+}</code></pre>
+<p>Use “Source on save” to play around with the function. When done, install and restart again.</p>
+<pre class="r"><code>add(4,16,plot=TRUE)</code></pre>
+<p>The package now depends on ggplot2. We have to add this to the description file</p>
+<pre class="r"><code>use_package(&quot;ggplot2&quot;, &quot;Imports&quot;)</code></pre>
+<p>Finally, we’ll ad a license to our package:</p>
+<pre class="r"><code>use_gpl3_license(name = &quot;Oliver Pfaffel&quot;) # change to your name</code></pre>
+<p>If you are a pipe fan, you can easily make it available via</p>
+<pre class="r"><code>use_pipe() # Use %&gt;%</code></pre>
+<p>We do not need it here.</p>
+<div id="documentation" class="section level2">
+<h2>Documentation</h2>
+<p>We’ll add a news and readme file.</p>
+<pre class="r"><code>use_news_md()
+use_readme_md() # use_readme_rmd() IF you want to run R code in</code></pre>
+<p>We change the readme file as follows.</p>
+<pre class="r"><code># CIexamplePkg
+
+&lt;!-- badges: start --&gt;
+&lt;!-- badges: end --&gt;
+
+The goal of CIexamplePkg is to provide a simple example on how to set up a package for continuous integration.</code></pre>
+<p>Be sure to keep the news file up to date. You can increment the version number via</p>
+<pre class="r"><code>use_version()</code></pre>
+<p>You can also add a vignette, but we’ll not do this here.</p>
+<pre class="r"><code>use_vignette(&quot;name_of_vignette&quot;)</code></pre>
+<p>Every R function should have a documentation. We’ll change the code of our function to</p>
+<pre class="r"><code>#&#39; Sum up two variables
+#&#39;
+#&#39; What is the sum of a and b?
+#&#39;
+#&#39; @param a numeric
+#&#39; @param b numeric
+#&#39; @param plot Makes plot if TRUE
+#&#39;
+#&#39; @return Returns a numeric that is the sum of a and b.
+#&#39;
+#&#39; @examples
+#&#39; add(7,2)
+#&#39; add(4,16,plot=TRUE)
+#&#39;
+#&#39; @export
+add &lt;- function(a,b,plot=FALSE) {
+  val &lt;- a+b
+  if (plot==TRUE) {
+    df &lt;- data.frame(x=c(a,b,val))
+    p &lt;- ggplot2::ggplot(df) + ggplot2::geom_col(ggplot2::aes(x=x,y=x))
+    print(p)
+  }
+  return(val)
+}</code></pre>
+<p>The function will now be exported to the namespace of our package, if we delete the existing NAMESPACE file first.
+After “Install and Restart” we build the documentation via</p>
+<pre class="r"><code>devtools::document()</code></pre>
+<p>Now the documentation is available via</p>
+<pre class="r"><code>?add</code></pre>
+</div>
+<div id="checking-the-package" class="section level2">
+<h2>Checking the package</h2>
+<p>Now we should check the package (there also is a button for this in RStudio)</p>
+<pre class="r"><code>devtools::check(document = FALSE)</code></pre>
+<p>To remove the note about non-standard files on top level, we simply ignore those file when building R</p>
+<pre class="r"><code>use_build_ignore(&quot;name of file to ignore.filetype&quot;)</code></pre>
+</div>
+<div id="tests" class="section level2">
+<h2>Tests</h2>
+<p>Every R package should have tests that automatically check core functionality</p>
+<pre class="r"><code>use_test(&quot;add&quot;)</code></pre>
+<p>We’ll simply change the code to</p>
+<pre class="r"><code>test_that(&quot;addition works&quot;, {
+  expect_equal(add(7,2), 9)
+})</code></pre>
+<p>and run the test. It should be successfull.</p>
+</div>
+</div>
+<div id="continous-integration" class="section level1">
+<h1>Continous integration</h1>
+<div id="using-github" class="section level2">
+<h2>Using github</h2>
+<p>Run the following commands and allow git to comit all files. Then restart RStudio.</p>
+<pre class="r"><code>usethis::use_git()
+usethis::use_git_config(user.name = &quot;Oliver Pfaffel&quot;, user.email = &quot;opfaffel@gmail.com&quot;) # change to your name and email</code></pre>
+<p>Now create a github PAT (personal access token) from the github page and add it to the environment</p>
+<pre class="r"><code>usethis::edit_r_environ()</code></pre>
+<p>Add the line GITHUB_PAT=YOUR-PAT, restart R and run</p>
+<pre class="r"><code>Sys.getenv(&quot;GITHUB_PAT&quot;)</code></pre>
+<p>to see if it works. Next we create a github repo via the github website. Then commit and push all files (copy and paste the code suggested at github to the terminal or use the RStudio GUI).</p>
+</div>
+<div id="travis-ci" class="section level2">
+<h2>Travis CI</h2>
+<p>Make a travis account and log in. Add Travis to your package via</p>
+<pre class="r"><code>usethis::use_travis()</code></pre>
+<p>Turn on travis for your repo at <a href="https://travis-ci.org/profile/o1iv3r" class="uri">https://travis-ci.org/profile/o1iv3r</a> as usethis says (your link will include your repo name).</p>
+<p>Add your github PAT to the Travis environment variables via options -&gt; settings -&gt; Environment variables</p>
+<p><em>NAME: GITHUB_PAT
+</em>VALUE: <token></p>
+<p>Travis will now run each time we push to github. Try this out! Note that this might take some time. After a successfull build you might notice the nice badge on your github page.</p>
+</div>
+<div id="advanced-travis-options" class="section level2">
+<h2>Advanced Travis options</h2>
+<p>Building wrt different R versions:</p>
+<p>Add</p>
+<p>r:
+- oldrel
+- release
+- devel</p>
+<p>to your .travis.yml</p>
+<p>This means we can test against three versions of R with no effort</p>
+<p>Build only for certain branches via</p>
+<pre class="r"><code>branches:
+  only:
+  - master
+  - stable</code></pre>
+<p>or exclude some (experimental) branches via</p>
+<pre class="r"><code>branches:
+  except:
+  - legacy
+  - experimental</code></pre>
+</div>
+<div id="test-coverage" class="section level2">
+<h2>Test coverage</h2>
+<p>We want Travis not only to run the tests but also to report test coverage. We’ll do this via the covr package</p>
+<pre class="r"><code>use_coverage()</code></pre>
+<p>Make sure to copy</p>
+<pre class="r"><code>r_github_packages:
+  - r-lib/covr
+
+after_success:
+  - Rscript -e &#39;covr::codecov()&#39;</code></pre>
+<p>to your travis.yml</p>
+<p>Then got to <a href="https://codecov.io/"></a> and add your repo. You will get a token that you have to add ad an Travis env variable (similar to your github PAT)</p>
+<p><em>NAME: CODECOV_TOKEN
+</em>VALUE: <token></p>
+<p>Now commit and push your changes to github and enjoy your new coverage badge.</p>
+<p>By the way, the covr package has a nice Addin that graphically shows you test coverage:</p>
+<pre class="r"><code>library(covr)
+# Addins -&gt; Calculate text package coverage</code></pre>
+</div>
+</div>

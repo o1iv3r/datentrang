@@ -25,7 +25,7 @@ ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
 
 [params]
     subtitle = "R, data and staticial methods"
-    description = "A website built around R, data and staticial / machine learning methods"
+    description = "A website built around R, data and statistical / machine learning methods"
     toc = true # Enable Table of Contents
     post_navigation = true # Show post navigation at bottom of pages if true
     copyright = "Oliver Pfaffel"
