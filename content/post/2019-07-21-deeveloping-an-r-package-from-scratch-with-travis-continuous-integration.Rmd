@@ -251,7 +251,7 @@ Travis will now run each time we push to github. Try this out! Note that this mi
 
 ## Advanced Travis options
 
-Building wrt different R versions:
+Building w.r.t. different R versions:
 
 Add
 
@@ -304,7 +304,7 @@ after_success:
 to your travis.yml
 
 
-Then got to [](https://codecov.io/) and add your repo. You will get a token that you have to add ad an Travis env variable (similar to your github PAT)
+Then go to [https://codecov.io/](https://codecov.io/) and add your repo. You will get a token that you have to add as a Travis environment variable (similar to your github PAT)
 
 * NAME: CODECOV_TOKEN
 * VALUE: token

@@ -147,7 +147,7 @@ usethis::use_git_config(user.name = &quot;Oliver Pfaffel&quot;, user.email = &qu
 </div>
 <div id="advanced-travis-options" class="section level2">
 <h2>Advanced Travis options</h2>
-<p>Building wrt different R versions:</p>
+<p>Building w.r.t. different R versions:</p>
 <p>Add</p>
 <pre class="r"><code>r:
   - oldrel
@@ -177,7 +177,7 @@ usethis::use_git_config(user.name = &quot;Oliver Pfaffel&quot;, user.email = &qu
 after_success:
   - Rscript -e &#39;covr::codecov()&#39;</code></pre>
 <p>to your travis.yml</p>
-<p>Then got to <a href="https://codecov.io/"></a> and add your repo. You will get a token that you have to add ad an Travis env variable (similar to your github PAT)</p>
+<p>Then go to <a href="https://codecov.io/">https://codecov.io/</a> and add your repo. You will get a token that you have to add as a Travis environment variable (similar to your github PAT)</p>
 <ul>
 <li>NAME: CODECOV_TOKEN</li>
 <li>VALUE: token</li>
