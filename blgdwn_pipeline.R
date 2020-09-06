@@ -18,4 +18,4 @@ library(blogdown)
 # terminal: git push -u origin master
 # or push button in Rstudio
 
-
+# JS support: https://www.r-consortium.org/blog/2020/08/30/from-r-hub-javascript-for-the-r-package-developer
