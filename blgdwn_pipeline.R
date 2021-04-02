@@ -4,11 +4,13 @@ library(blogdown)
 # blogdown::new_site(theme = "vimux/mainroad")
 # https://themes.gohugo.io/
 
-## how to create a new blog post: add-in new post
+## how to create a new blog post: 
+# add-in new post does NOT work atm (creates new directory)
+# workaround: copy an existing post
 
 ## Create post
 # run all chunks
-# use add-in: serve site
+# use add-in: serve site or blogdown:::serve_site()
 
 ## Commit changes
 # terminal: git commit -m "Commit message"
@@ -19,15 +21,6 @@ library(blogdown)
 # or push button in Rstudio
 
 
-#### Notes ####
-
-# add applause button to next blog post!!!
-# ```{r applause-button, echo=FALSE}
-# applause::button(
-#   color = "#0C4047",
-#   width = "100px"
-# )
-# ```
 
 
 # JS support: https://www.r-consortium.org/blog/2020/08/30/from-r-hub-javascript-for-the-r-package-developer
