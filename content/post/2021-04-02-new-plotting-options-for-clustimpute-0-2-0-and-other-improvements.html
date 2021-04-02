@@ -1,0 +1,72 @@
+---
+title: New plot functionality for ClustImpute 0.2.0 and other improvements
+author: Oliver Pfaffel
+date: '2021-04-02'
+slug: new-plotting-options-for-clustimpute-0-2-0-and-other-improvements
+categories:
+  - R
+  - unsupervised machine learning
+  - statistical analysis
+tags:
+  - dataviz
+  - clustering
+  - k-means
+  - missing data
+description: ''
+thumbnail: ''
+---
+
+
+
+<p>Let’s create some dummy data…</p>
+<pre class="r"><code>### Random Dataset
+set.seed(739)
+n &lt;- 7500 # numer of points
+nr_other_vars &lt;- 4
+mat &lt;- matrix(rnorm(nr_other_vars*n),n,nr_other_vars)
+me&lt;-4 # mean
+x &lt;- c(rnorm(n/3,me/2,1),rnorm(2*n/3,-me/2,1)) 
+y &lt;- c(rnorm(n/3,0,1),rnorm(n/3,me,1),rnorm(n/3,-me,1))
+true_clust &lt;- c(rep(1,n/3),rep(2,n/3),rep(3,n/3)) # true clusters
+dat &lt;- cbind(mat,x,y)
+dat&lt;- as.data.frame(scale(dat)) # scaling
+summary(dat)</code></pre>
+<pre><code>##        V1                 V2                  V3                 V4           
+##  Min.   :-3.40352   Min.   :-4.273673   Min.   :-3.82710   Min.   :-3.652267  
+##  1st Qu.:-0.67607   1st Qu.:-0.670061   1st Qu.:-0.66962   1st Qu.:-0.684359  
+##  Median : 0.01295   Median :-0.006559   Median :-0.01179   Median : 0.001737  
+##  Mean   : 0.00000   Mean   : 0.000000   Mean   : 0.00000   Mean   : 0.000000  
+##  3rd Qu.: 0.67798   3rd Qu.: 0.684672   3rd Qu.: 0.67221   3rd Qu.: 0.687404  
+##  Max.   : 3.35535   Max.   : 3.423416   Max.   : 3.80557   Max.   : 3.621530  
+##        x                 y            
+##  Min.   :-2.1994   Min.   :-2.151001  
+##  1st Qu.:-0.7738   1st Qu.:-0.975136  
+##  Median :-0.2901   Median : 0.009932  
+##  Mean   : 0.0000   Mean   : 0.000000  
+##  3rd Qu.: 0.9420   3rd Qu.: 0.975788  
+##  Max.   : 2.8954   Max.   : 2.265420</code></pre>
+<p>…with missings…</p>
+<pre class="r"><code>library(ClustImpute)
+dat_with_miss &lt;- miss_sim(dat,p=.2,seed_nr=120)
+mis_ind &lt;- is.na(dat_with_miss) # missing indicator</code></pre>
+<p>…that is clearly hard to impute using a simple random imputation:</p>
+<p><img src="/post/2021-04-02-new-plotting-options-for-clustimpute-0-2-0-and-other-improvements_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<p>Any clustering based on data “completed” this way will not provide good results. With ClustImpute we come a bit closer to a clustering based on the the full data as we can see here:</p>
+<p><img src="/post/2021-04-02-new-plotting-options-for-clustimpute-0-2-0-and-other-improvements_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<p>How would we look at the cluster results if we did not knew that the clusters exist in a 2-dimensional subspace? One way would be to look at the marginal distribution of each features within a cluster. Basically what is shown above by making use of the ggExtra package. ClustImpute has this now as build-in default plot:</p>
+<pre class="r"><code>plot(res)+xlim(-2.5,2.5)</code></pre>
+<pre><code>## Warning: Removed 385 rows containing non-finite values (stat_bin).</code></pre>
+<p><img src="/post/2021-04-02-new-plotting-options-for-clustimpute-0-2-0-and-other-improvements_files/figure-html/unnamed-chunk-5-1.png" width="960" /></p>
+<p>We trunctate the x-axis here to focus on the body of the distribution but of course this is optional. Clearly, the clusters only really differ by feature x and y. The orange bars show the cluster centroids - alternatively one can also show the mean of all data points grouped by cluster and feature (which may differ slightly since the last step in ClustImpute is the cluster assignment based on the final centroids).</p>
+<p>Alternatively one can also visualize the marginal distributions with a box-plot:</p>
+<pre class="r"><code>plot(res, type=&quot;box&quot;)</code></pre>
+<p><img src="/post/2021-04-02-new-plotting-options-for-clustimpute-0-2-0-and-other-improvements_files/figure-html/unnamed-chunk-6-1.png" width="960" /></p>
+<div id="other-new-functionality" class="section level3">
+<h3>Other new functionality</h3>
+<p>There are some other new features - perhaps there are separate posts following up on those.</p>
+<ul>
+<li>It used to be the (strong) recommendation to center the data if a weight function is used (n_end &gt;1). Now, by default, the scaling with the weight function is towards the global overall mean of each feature. Thus, for centered data there is almost no change (due the random imputation mechanism data with a true unknown mean of zero might have an empirical mean unequal to zero). This is relevant for you if you have to work with uncentered data for whatever (good) reason.</li>
+<li>There is a check if the data is centered, and potentially a warning (if you scale the imputed values towards zero instead of the actual mean).</li>
+<li>Added custom print function showing clsuter centrois and number of observations per cluster in nicely formated tables. Nothing dramatic but nice to look at.</li>
+</ul>
+</div>
